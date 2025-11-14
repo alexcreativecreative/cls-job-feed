@@ -28,9 +28,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [[ `git status --porcelain` ]]; then
+
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "🔄 Changes detected – committing..."
             git add jobs.html
             git commit -m "Update jobs feed"
             git push
           else
-            echo "No changes to commit"
+            echo "🟡 No changes to commit"
+          fi
