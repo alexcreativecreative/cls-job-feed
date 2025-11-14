@@ -5,6 +5,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write     # 🔥 REQUIRED FIX for 403 push errors
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,14 +24,14 @@ jobs:
       - name: Install dependencies
         run: npm install xml2js
 
-      - name: Run build-jobs.js
+      - name: Generate jobs.html
         run: node build-jobs.js
 
       - name: Commit updated jobs.html
         uses: EndBug/add-and-commit@v9
         with:
-          add: 'jobs.html'
-          message: '🔄 Update jobs feed'
+          add: "jobs.html"
+          message: "🔄 Update jobs feed"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
