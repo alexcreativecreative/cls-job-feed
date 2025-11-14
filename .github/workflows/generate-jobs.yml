@@ -2,27 +2,22 @@ name: Generate Jobs Feed
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-
-permissions:
-  contents: write     # 🔥 REQUIRED FIX for 403 push errors
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Node
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install xml2js
+        run: npm install
 
       - name: Generate jobs.html
         run: node build-jobs.js
@@ -30,11 +25,8 @@ jobs:
       - name: Commit updated jobs.html
         uses: EndBug/add-and-commit@v9
         with:
-          add: "jobs.html"
-          message: "🔄 Update jobs feed"
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./
+          author_name: alexcreativecreative
+          author_email: alexcreativecreative@users.noreply.github.com
+          message: "♻️ Update jobs feed"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
