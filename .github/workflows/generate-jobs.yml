@@ -1,14 +1,12 @@
 name: Generate Jobs Feed
 
-name: Generate Jobs Feed
-
 permissions:
   contents: write
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/30 * * * *"  # runs every 30 minutes
 
 jobs:
   build:
@@ -23,6 +21,9 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Generate jobs HTML
         run: node build-jobs.js
 
@@ -33,12 +34,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "🔄 Changes detected – committing..."
-            git add jobs.html
-            git commit -m "Update jobs feed"
-            git push
-          else
-            echo "🟡 No changes to commit"
-          fi
+          git add jobs.html
+          git diff --cached --quiet || git commit -m "Update jobs feed"
+          git push
