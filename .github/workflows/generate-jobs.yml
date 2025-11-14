@@ -20,12 +20,18 @@ jobs:
 
       - name: Generate jobs HTML
         run: node build-jobs.js
-        continue-on-error: false
 
-      - name: Commit and push jobs.html
+      - name: Show git status (for debugging)
+        run: git status
+
+      - name: Commit and push jobs.html if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add jobs.html
-          git commit -m "Update jobs feed"
-          git push
+          if [[ `git status --porcelain` ]]; then
+            git add jobs.html
+            git commit -m "Update jobs feed"
+            git push
+          else
+            echo "🟡 No changes to commit"
+          fi
