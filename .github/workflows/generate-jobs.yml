@@ -6,7 +6,7 @@ permissions:
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"  # runs every 30 minutes
+    - cron: "*/30 * * * *"
 
 jobs:
   build:
@@ -20,9 +20,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-
-      - name: Install dependencies
-        run: npm install
 
       - name: Generate jobs HTML
         run: node build-jobs.js
