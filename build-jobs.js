@@ -1,5 +1,7 @@
 const fs = require('fs');
 
+console.log("✅ Running build-jobs.js");
+
 const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -14,4 +16,10 @@ const htmlContent = `
 </html>
 `;
 
-fs.writeFileSync('jobs.html', htmlContent);
+try {
+  fs.writeFileSync('jobs.html', htmlContent);
+  console.log("✅ jobs.html written successfully");
+} catch (error) {
+  console.error("❌ Error writing file:", error);
+  process.exit(1);
+}
