@@ -3,6 +3,10 @@ name: Generate Jobs Feed
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write  # ✅ Needed for push to work
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
