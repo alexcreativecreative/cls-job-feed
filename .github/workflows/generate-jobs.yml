@@ -21,7 +21,7 @@ jobs:
       - name: Generate jobs HTML
         run: node build-jobs.js
 
-      - name: Show git status (for debugging)
+      - name: Show git status
         run: git status
 
       - name: Commit and push jobs.html if changed
@@ -33,5 +33,4 @@ jobs:
             git commit -m "Update jobs feed"
             git push
           else
-            echo "🟡 No changes to commit"
-          fi
+            echo "No changes to commit"
