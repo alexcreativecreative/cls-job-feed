@@ -1,55 +1,69 @@
 const fs = require('fs');
-const Parser = require('rss-parser');
-const parser = new Parser();
+const https = require('https');
+const xml2js = require('xml2js');
 
+// RSS feed URL
 const FEED_URL = 'https://conceptlifesciences.peoplehr.net/Pages/JobBoard/CurrentOpenings.aspx?o=dfed9099-5acb-4756-bf3e-41a426270f97';
 
-(async () => {
-  console.log("✅ Fetching RSS feed...");
+// SVGs
+const locationSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM12 11.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5z" fill="currentColor"/></svg>`;
 
-  let feed;
-  try {
-    feed = await parser.parseURL(FEED_URL);
-  } catch (err) {
-    console.error("❌ Failed to fetch RSS feed:", err);
-    process.exit(1);
-  }
+const calendarSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M7 11H9V13H7V11ZM11 11H13V13H11V11ZM15 11H17V13H15V11ZM19 4H18V2H16V4H8V2H6V4H5C3.89 4 3 .89 3 2V20C3 21.11 3.89 22 5 22H19C20.11 22 21 21.11 21 20V6C21 4.89 20.11 4 19 4ZM19 20H5V9H19V20Z" fill="currentColor"/></svg>`;
 
-  const jobCards = feed.items.map(item => {
-    const title = item.title || "Untitled role";
-    const link = item.link || "#";
-    const summary = item.contentSnippet || "";
-    const location = item.categories?.[0] || "Location unknown";
-    const department = item.categories?.[1] || "Department unknown";
+// Fetch and build logic
+https.get(FEED_URL, (res) => {
+  let data = '';
 
-    return `
-      <div class="career27_item">
-        <div class="job-card-header-row">
-          <div class="job-card-title-col"><div>${title}</div></div>
-          <div class="job-card-department-col"><div>${department}</div></div>
-        </div>
-        <div class="job-description"><p>${summary}</p></div>
-        <div class="job-card-info-row">
-          <div class="job-info-item">
-            <div class="job-info-icon">
-              <div class="job-info-icon w-embed">
-                <!-- location SVG -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM12 11.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5z" fill="currentColor"/>
-                </svg>
-              </div>
-            </div>
-            <div class="job-info-text"><div>${location}</div></div>
+  res.on('data', chunk => data += chunk);
+  res.on('end', () => {
+    xml2js.parseString(data, (err, result) => {
+      if (err) {
+        console.error("❌ XML Parse Error:", err);
+        return;
+      }
+
+      const items = result.rss.channel[0].item || [];
+
+      const jobCards = items.map(item => {
+        const title = item.title?.[0] || 'No title';
+        const link = item.link?.[0] || '#';
+        const department = item.department?.[0] || 'Department unknown';
+        const location = item.location?.[0] || 'Location unknown';
+        const closingDate = item.closingdate?.[0] || 'Closing date unknown';
+
+        return `
+  <div class="career27_item">
+    <div class="job-card-header-row">
+      <div class="job-card-title-col"><div>${title}</div></div>
+      <div class="job-card-department-col"><div>${department}</div></div>
+    </div>
+
+    <div class="job-card-info-row">
+      <div class="job-info-item">
+        <div class="job-info-icon">
+          <div class="job-info-icon w-embed">
+            ${locationSVG}
           </div>
         </div>
-        <div class="job-card-button-row">
-          <a href="${link}" class="job-button w-button" target="_blank">Find out more &amp; apply</a>
-        </div>
+        <div class="job-info-text"><div>${location}</div></div>
       </div>
-    `;
-  }).join('\n');
+      <div class="job-info-item">
+        <div class="job-info-icon">
+          <div class="job-info-icon w-embed">
+            ${calendarSVG}
+          </div>
+        </div>
+        <div class="job-info-text"><div>Closing date: ${closingDate}</div></div>
+      </div>
+    </div>
 
-  const htmlContent = `
+    <div class="job-card-button-row">
+      <a href="${link}" class="job-button w-button" target="_blank">Find out more &amp; apply</a>
+    </div>
+  </div>`;
+      }).join('\n');
+
+      const finalHTML = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -61,14 +75,12 @@ const FEED_URL = 'https://conceptlifesciences.peoplehr.net/Pages/JobBoard/Curren
     ${jobCards}
   </div>
 </body>
-</html>
-`;
+</html>`;
 
-  try {
-    fs.writeFileSync('jobs.html', htmlContent);
-    console.log("✅ jobs.html written successfully");
-  } catch (error) {
-    console.error("❌ Error writing jobs.html:", error);
-    process.exit(1);
-  }
-})();
+      fs.writeFileSync('jobs.html', finalHTML);
+      console.log("✅ jobs.html written successfully with", items.length, "items");
+    });
+  });
+}).on('error', err => {
+  console.error("❌ HTTP Fetch Error:", err);
+});
