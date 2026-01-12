@@ -24,7 +24,13 @@ https.get(FEED_URL, (res) => {
 
       const items = result.rss.channel[0].item || [];
 
-      const jobCards = items.map(item => {
+      // ✅ Filter out Talent Pool role
+      const filteredItems = items.filter(item => {
+        const title = item.title?.[0]?.toLowerCase().trim();
+        return title !== 'talent pool';
+      });
+
+      const jobCards = filteredItems.map(item => {
         const title = item.title?.[0] || 'No title';
         const link = item.link?.[0] || '#';
         const department = item.department?.[0] || 'Department unknown';
@@ -78,7 +84,7 @@ https.get(FEED_URL, (res) => {
 </html>`;
 
       fs.writeFileSync('jobs.html', finalHTML);
-      console.log("✅ jobs.html written successfully with", items.length, "items");
+      console.log("✅ jobs.html written successfully with", filteredItems.length, "items");
     });
   });
 }).on('error', err => {
