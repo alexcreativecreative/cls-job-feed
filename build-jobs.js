@@ -7,8 +7,10 @@ const FEED_URL = 'https://conceptlifesciences.peoplehr.net/Pages/JobBoard/Curren
 
 // SVGs
 const locationSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zM12 11.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5z" fill="currentColor"/></svg>`;
+
 const calendarSVG = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none"><path d="M7 11H9V13H7V11ZM11 11H13V13H11V11ZM15 11H17V13H15V11ZM19 4H18V2H16V4H8V2H6V4H5C3.89 4 3 .89 3 2V20C3 21.11 3.89 22 5 22H19C20.11 22 21 21.11 21 20V6C21 4.89 20.11 4 19 4ZM19 20H5V9H19V20Z" fill="currentColor"/></svg>`;
 
+// Fetch and build logic
 https.get(FEED_URL, (res) => {
   let data = '';
 
@@ -22,21 +24,14 @@ https.get(FEED_URL, (res) => {
 
       const items = result.rss.channel[0].item || [];
 
-      const excludedTitles = ['talent pool'];
+      const jobCards = items.map(item => {
+        const title = item.title?.[0] || 'No title';
+        const link = item.link?.[0] || '#';
+        const department = item.department?.[0] || 'Department unknown';
+        const location = item.location?.[0] || 'Location unknown';
+        const closingDate = item.closingdate?.[0] || 'Closing date unknown';
 
-      const jobCards = items
-        .filter(item => {
-          const title = item.title?.[0]?.toLowerCase().trim() || '';
-          return !excludedTitles.includes(title);
-        })
-        .map(item => {
-          const title = item.title?.[0] || 'No title';
-          const link = item.link?.[0] || '#';
-          const department = item.department?.[0] || 'Department unknown';
-          const location = item.location?.[0] || 'Location unknown';
-          const closingDate = item.closingdate?.[0] || 'Closing date unknown';
-
-          return `
+        return `
   <div class="career27_item">
     <div class="job-card-header-row">
       <div class="job-card-title-col"><div>${title}</div></div>
@@ -66,7 +61,7 @@ https.get(FEED_URL, (res) => {
       <a href="${link}" class="job-button w-button" target="_blank">Find out more &amp; apply</a>
     </div>
   </div>`;
-        }).join('\n');
+      }).join('\n');
 
       const finalHTML = `
 <!DOCTYPE html>
