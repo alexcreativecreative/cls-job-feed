@@ -5,13 +5,17 @@ on:
   schedule:
     - cron: '0 * * * *'  # runs every hour
 
+# Prevent overlapping runs (cron + manual clicks etc.)
+concurrency:
+  group: generate-jobs-feed
+  cancel-in-progress: true
+
 permissions:
-  contents: write  # ✅ Needed for push to work
-  pull-requests: write
+  contents: write  # needed to push commits
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout code
@@ -23,7 +27,12 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Generate jobs.html
         run: node build-jobs.js
@@ -31,6 +40,7 @@ jobs:
       - name: Commit updated jobs.html
         uses: EndBug/add-and-commit@v9
         with:
+          add: "jobs.html"
           author_name: alexcreativecreative
           author_email: alexcreativecreative@users.noreply.github.com
           message: "♻️ Update jobs feed"
