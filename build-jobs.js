@@ -86,7 +86,7 @@ https.get(FEED_URL, (res) => {
         talent pool
         <a href="https://conceptlifesciences.peoplehr.net/Pages/JobBoard/Opening.aspx?v=1b7a8b18-c5ac-4f1c-b5df-0674c371b76c"
            target="_blank">
-          here
+          <strong>here</strong>
         </a>.
       </p>
     </div>
